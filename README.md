@@ -542,6 +542,7 @@ Obtenha sua API Key em: [https://linker.devgui.dev](https://linker.devgui.dev)
 | Renomear figurinha | Membro | ❌ |
 | Remover fundo de imagem | Membro | ✅ |
 | Sticker | Membro | ❌ |
+| Sticker com áudio | Membro | ❌ |
 | Sticker IA  | Membro | ✅ |
 | Sticker para imagem | Membro | ❌ |
 | TikTok audio download | Membro | ✅ |
@@ -552,6 +553,8 @@ Obtenha sua API Key em: [https://linker.devgui.dev](https://linker.devgui.dev)
 | YT MP3 | Membro | ✅ |
 | YT MP4 | Membro | ✅ |
 | YT search | Membro | ✅ |
+
+Use `stickeraudio` marcando ou respondendo a um vídeo com áudio de até 10 segundos. O servidor precisa de `ffmpeg` e `ffprobe`, com suporte a `libwebp` e `libopus`. Como o formato sonoro está em rollout gradual no WhatsApp, a reprodução depende de o aplicativo de quem recebe já oferecer suporte.
 
 ## Auto responder
 
