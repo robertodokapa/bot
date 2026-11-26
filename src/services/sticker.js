@@ -8,7 +8,14 @@ import webp from "node-webpmux";
 import fs from "node:fs";
 import path from "node:path";
 import { BOT_EMOJI, BOT_NAME, TEMP_DIR } from "../config.js";
-import { getRandomName, getRandomNumber, getUserName } from "../utils/index.js";
+import {
+  getContent,
+  getRandomName,
+  getRandomNumber,
+  getUserName,
+} from "../utils/index.js";
+
+const MAX_VIDEO_DURATION_SECONDS = 10;
 
 export async function addStickerMetadata(media, metadata) {
   const tmpFileIn = getRandomName("webp");
@@ -225,23 +232,17 @@ export async function createSticker(paramsHandler) {
         }
       }
 
-      const maxDuration = 10;
-      const seconds =
-        webMessage.message?.videoMessage?.seconds ||
-        webMessage.message?.extendedTextMessage?.contextInfo?.quotedMessage
-          ?.videoMessage?.seconds;
+      const seconds = getContent(webMessage, "video")?.seconds;
 
-      if (!seconds || seconds > maxDuration) {
+      if (!seconds) {
         if (inputPath && fs.existsSync(inputPath)) {
           fs.unlinkSync(inputPath);
         }
-        throw new Error(
-          `O vídeo enviado tem mais de ${maxDuration} segundos! Envie um vídeo menor.`,
-        );
+        throw new Error("Não foi possível identificar a duração do vídeo.");
       }
 
       await new Promise((resolve, reject) => {
-        const cmd = `ffmpeg -y -i "${inputPath}" -vf "scale=350:350,fps=15" -c:v libwebp -loop 0 -quality 8 -compression_level 6 -method 6 -preset picture -an -f webp "${outputTempPath}"`;
+        const cmd = `ffmpeg -y -i "${inputPath}" -t ${MAX_VIDEO_DURATION_SECONDS} -vf "scale=350:350,fps=15" -c:v libwebp -loop 0 -quality 8 -compression_level 6 -method 6 -preset picture -an -f webp "${outputTempPath}"`;
 
         exec(cmd, (error, _, stderr) => {
           if (error) {

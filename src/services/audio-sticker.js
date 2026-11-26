@@ -141,9 +141,9 @@ export async function createAudioSticker(paramsHandler) {
     throw new Error("Marque ou responda a um vídeo para criar a figurinha com áudio.");
   }
 
-  if (!duration || duration > MAX_DURATION_SECONDS) {
+  if (!duration) {
     throw new Error(
-      `O vídeo precisa ter entre 1 e ${MAX_DURATION_SECONDS} segundos.`,
+      "Não foi possível identificar a duração do vídeo.",
     );
   }
 
