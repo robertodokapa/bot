@@ -147,6 +147,32 @@ describe("Database Functions", () => {
     });
   });
 
+  describe("Global Bot State", () => {
+    let configBackup;
+
+    before(() => {
+      const configPath = path.resolve(testDatabasePath, "config.json");
+      if (fs.existsSync(configPath)) {
+        configBackup = fs.readFileSync(configPath, "utf8");
+      }
+    });
+
+    after(() => {
+      cleanupJsonFile("config", configBackup);
+    });
+
+    it("should disable and re-enable the bot globally", () => {
+      database.setBotDisabled(false);
+      assert.strictEqual(database.isBotDisabled(), false);
+
+      database.setBotDisabled(true);
+      assert.strictEqual(database.isBotDisabled(), true);
+
+      database.setBotDisabled(false);
+      assert.strictEqual(database.isBotDisabled(), false);
+    });
+  });
+
   describe("Auto Responder", () => {
     let autoResponderBackup;
 

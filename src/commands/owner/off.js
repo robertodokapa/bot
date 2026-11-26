@@ -1,10 +1,10 @@
 import { PREFIX } from "../../config.js";
 import { WarningError } from "../../errors/index.js";
-import { deactivateGroup } from "../../utils/database.js";
+import { setBotDisabled } from "../../utils/database.js";
 
 export default {
   name: "off",
-  description: "Desativa o bot no grupo",
+  description: "Desativa o bot globalmente",
   commands: ["off", "bangp"],
   usage: `${PREFIX}off`,
   /**
@@ -14,7 +14,7 @@ export default {
     if (!isGroup) {
       throw new WarningError("Este comando deve ser usado dentro de um grupo.");
     }
-    deactivateGroup(remoteJid);
-    await sendSuccessReply("Bot desativado no grupo!");
+    setBotDisabled(true);
+    await sendSuccessReply("Bot desativado para todos os usuários!");
   },
 };

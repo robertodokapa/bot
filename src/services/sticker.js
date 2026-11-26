@@ -163,7 +163,7 @@ export async function createSticker(paramsHandler) {
   } = paramsHandler;
 
   const metadata = {
-    username: getUserName(webMessage, userLid),
+    username: '',
     botName: `${BOT_EMOJI} ${BOT_NAME}`,
   };
 

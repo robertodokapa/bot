@@ -222,7 +222,7 @@ export async function createAudioSticker(paramsHandler) {
     ]);
 
     const metadata = {
-      username: getUserName(webMessage, userLid),
+      username: '',
       botName: `${BOT_EMOJI} ${BOT_NAME}`,
     };
     stickerPath = await addStickerMetadata(

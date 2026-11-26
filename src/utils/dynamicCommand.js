@@ -28,6 +28,7 @@ import {
   isActiveAutoStickerGroup,
   isActiveGroup,
   isActiveOnlyAdmins,
+  isBotDisabled,
 } from "./database.js";
 import { findCommandImport } from "./index.js";
 import { errorLog } from "./logger.js";
@@ -87,6 +88,10 @@ export async function dynamicCommand(paramsHandler, startProcess) {
   }
 
   const { type, command } = await findCommandImport(commandName);
+
+  if (isBotDisabled() && !isBotOwner({ userLid })) {
+    return;
+  }
 
   if (ONLY_GROUP_ID && ONLY_GROUP_ID !== remoteJid) {
     return;
@@ -166,7 +171,7 @@ export async function dynamicCommand(paramsHandler, startProcess) {
   if (fullMessage === groupPrefix) {
     await sendReact(BOT_EMOJI);
     await sendReply(
-      `Este é meu prefixo! Use ${groupPrefix}menu para ver os comandos disponíveis!`
+      `Este é meu prefixo! Use ${groupPrefix}menu para ver a lista de comandos`
     );
 
     return;
@@ -174,7 +179,7 @@ export async function dynamicCommand(paramsHandler, startProcess) {
 
   if (!hasTypeAndCommand({ type, command })) {
     await sendWarningReply(
-      `Comando não encontrado! Use ${groupPrefix}menu para ver os comandos disponíveis!`
+      `Comando não encontrado! Use ${groupPrefix}menu para ver a lista de comandos`
     );
 
     return;

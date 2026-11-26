@@ -537,3 +537,19 @@ export function getSpiderApiToken() {
 
   return config.spider_api_token || SPIDER_API_TOKEN;
 }
+
+export function setBotDisabled(disabled) {
+  const filename = CONFIG_FILE;
+  const config = readJSON(filename, {});
+
+  config.bot_disabled = Boolean(disabled);
+
+  writeJSON(filename, config, {});
+}
+
+export function isBotDisabled() {
+  const filename = CONFIG_FILE;
+  const config = readJSON(filename, {});
+
+  return config.bot_disabled === true;
+}
