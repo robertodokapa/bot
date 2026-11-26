@@ -10,6 +10,8 @@ import { getRandomNumber, removeFileIfExists } from "../utils/index.js";
 import { errorLog } from "../utils/logger.js";
 
 class Ffmpeg {
+  tempDir: string;
+
   constructor() {
     this.tempDir = TEMP_DIR;
   }

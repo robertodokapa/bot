@@ -418,6 +418,21 @@ describe("Utility Functions", () => {
       assert.ok("command" in result);
     });
 
+    it("should load sticker fit and audio fit adjustment commands", async () => {
+      for (const commandName of [
+        "stickerfit",
+        "stickercrop",
+        "stickerstretch",
+        "stickeraudiofit",
+        "stickeraudiocrop",
+        "stickeraudiostretch",
+      ]) {
+        const result = await utils.findCommandImport(commandName);
+        assert.strictEqual(result.type, "member");
+        assert.ok(result.command);
+      }
+    });
+
     it("should return empty strings for nonexistent command", async () => {
       const result = await utils.findCommandImport(
         "comando_que_nao_existe_xyz123"

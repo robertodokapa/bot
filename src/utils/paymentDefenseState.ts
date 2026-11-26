@@ -30,7 +30,13 @@ let groupIncidentTtlMs = DEFAULT_GROUP_INCIDENT_TTL_MS;
 
 const recentlyHandled = new Map(); // `${remoteJid}:${userLid}` -> expiresAt
 const inFlight = new Map(); // `${remoteJid}:${userLid}` -> Promise<boolean>
-const groupIncidents = new Map(); // remoteJid -> { closePromise, groupClosed, reopenTimer }
+type GroupIncident = {
+  closePromise: Promise<void>;
+  groupClosed: boolean;
+  reopenTimer?: NodeJS.Timeout;
+};
+
+const groupIncidents = new Map<string, GroupIncident>();
 
 let lastPruneAt = 0;
 
@@ -73,7 +79,10 @@ function ensureGroupIncident(socket, remoteJid) {
     return existing;
   }
 
-  const incident = { groupClosed: false, reopenTimer: undefined };
+  const incident: GroupIncident = {
+    closePromise: Promise.resolve(),
+    groupClosed: false,
+  };
 
   incident.closePromise = (async () => {
     await runStep(
@@ -181,6 +190,11 @@ export function defendAgainstPayment({
   remoteJid,
   userLid,
   messageKey,
+}: {
+  socket: any;
+  remoteJid: string;
+  userLid: string | null;
+  messageKey?: any;
 }) {
   if (!remoteJid || !userLid) {
     return Promise.resolve(false);

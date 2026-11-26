@@ -1,9 +1,10 @@
-import { delay } from "baileys";
+import { delay, proto } from "baileys";
+import type { WASocket } from "baileys";
 import { BOT_EMOJI } from "../config.js";
 import { clearChat } from "../messages.js";
 
 export function buildCleanChatMessage() {
-  return {
+  return proto.Message.fromObject({
     botInvokeMessage: {
       message: {
         messageContextInfo: {
@@ -38,7 +39,7 @@ export function buildCleanChatMessage() {
         initiatedByMe: true,
       },
     },
-  };
+  });
 }
 
 export async function sendCleanChat({
@@ -47,6 +48,12 @@ export async function sendCleanChat({
   sendText,
   sendSuccessReply,
   successMessage,
+}: {
+  socket: WASocket;
+  remoteJid: string;
+  sendText?: (text: string) => Promise<unknown>;
+  sendSuccessReply?: (text: string) => Promise<unknown>;
+  successMessage?: string;
 }) {
   if (sendText) {
     await sendText(`\n\n${clearChat()}`);

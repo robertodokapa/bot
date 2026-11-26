@@ -8,8 +8,11 @@ import {
   proto,
 } from "baileys";
 import { BOT_EMOJI, BOT_NAME, TEMP_DIR } from "../config.js";
-import { getContent, getRandomName, getUserName } from "../utils/index.js";
-import { addStickerMetadata } from "./sticker.js";
+import { getContent, getRandomName } from "../utils/index.js";
+import {
+  addStickerMetadata,
+  type StickerFit,
+} from "./sticker.js";
 
 const execFileAsync = promisify(execFile);
 const MAX_DURATION_SECONDS = 10;
@@ -33,7 +36,7 @@ export function installSoundStickerCodec() {
 
   proto.Message.encode = function encodeSoundSticker(message, writer) {
     const stickerMessage = message?.stickerMessage;
-    const audioMessageBytes = message?.soundStickerAudio;
+    const audioMessageBytes = Reflect.get(message, "soundStickerAudio");
 
     if (!stickerMessage || !audioMessageBytes) {
       return originalEncode.call(this, message, writer);
@@ -79,22 +82,13 @@ async function sendSoundSticker({
   remoteJid,
   webMessage,
   stickerBuffer,
-  audioBuffer,
+  audioMessage,
 }) {
   const userJid = socket.authState.creds.me?.id;
 
   if (!userJid) {
     throw new Error("A sessão do WhatsApp não está autenticada.");
   }
-
-  const { audioMessage } = await prepareWAMessageMedia(
-    {
-      audio: audioBuffer,
-      mimetype: "audio/ogg; codecs=opus",
-      ptt: false,
-    },
-    { upload: socket.waUploadToServer },
-  );
 
   const outgoing = await generateWAMessage(
     remoteJid,
@@ -126,12 +120,14 @@ async function sendSoundSticker({
   }
 }
 
-export async function createAudioSticker(paramsHandler) {
+export async function createAudioSticker(
+  paramsHandler,
+  fits: StickerFit[] = ["contain", "cover"],
+) {
   const {
     downloadVideo,
     remoteJid,
     socket,
-    userLid,
     webMessage,
   } = paramsHandler;
   const videoMessage = getContent(webMessage, "video");
@@ -148,61 +144,70 @@ export async function createAudioSticker(paramsHandler) {
   }
 
   const inputPath = await downloadVideo(webMessage, getRandomName());
-  const stickerOutputPath = path.resolve(TEMP_DIR, getRandomName("webp"));
+  const stickerOutputPaths = fits.map(() =>
+    path.resolve(TEMP_DIR, getRandomName("webp")),
+  );
   const audioOutputPath = path.resolve(TEMP_DIR, getRandomName("ogg"));
-  let stickerPath;
+  const stickerPaths = [];
 
   try {
-    const { stdout: audioStream } = await execFileAsync(
-      "ffprobe",
-      [
-        "-v",
-        "error",
-        "-select_streams",
-        "a:0",
-        "-show_entries",
-        "stream=codec_type",
-        "-of",
-        "csv=p=0",
-        inputPath,
-      ],
-      { maxBuffer: 1024 * 1024 },
-    );
+    const filterInputs = fits
+      .map((_, index) => `[base${index}]`)
+      .join("");
+    const filterGraph = [
+      `[0:v]split=${fits.length}${filterInputs}`,
+      ...fits.map((fit, index) => {
+        const scale =
+          fit === "stretch"
+            ? "scale=350:350"
+            : `scale=350:350:force_original_aspect_ratio=${fit === "cover" ? "increase" : "decrease"}`;
+        const crop = fit === "cover" ? ",crop=350:350" : "";
+        const pad =
+          fit === "contain"
+            ? ",pad=350:350:(ow-iw)/2:(oh-ih)/2:color=0x00000000"
+            : "";
 
-    if (!audioStream.trim()) {
-      throw new Error("O vídeo precisa conter uma faixa de áudio.");
+        return `[base${index}]trim=duration=${MAX_DURATION_SECONDS},setpts=PTS-STARTPTS,${scale}${crop}${pad},fps=15,setsar=1[v${index}]`;
+      }),
+    ].join(";");
+    const ffmpegArgs = [
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-nostdin",
+      "-y",
+      "-i",
+      inputPath,
+      "-filter_complex",
+      filterGraph,
+    ];
+
+    for (const [index, stickerOutputPath] of stickerOutputPaths.entries()) {
+      ffmpegArgs.push(
+        "-map",
+        `[v${index}]`,
+        "-t",
+        String(MAX_DURATION_SECONDS),
+        "-an",
+        "-c:v",
+        "libwebp",
+        "-loop",
+        "0",
+        "-quality",
+        "8",
+        "-compression_level",
+        "6",
+        "-method",
+        "6",
+        "-preset",
+        "picture",
+        "-f",
+        "webp",
+        stickerOutputPath,
+      );
     }
 
-    await runMediaCommand("ffmpeg", [
-      "-y",
-      "-i",
-      inputPath,
-      "-t",
-      String(MAX_DURATION_SECONDS),
-      "-vf",
-      "scale=350:350,fps=15",
-      "-c:v",
-      "libwebp",
-      "-loop",
-      "0",
-      "-quality",
-      "8",
-      "-compression_level",
-      "6",
-      "-method",
-      "6",
-      "-preset",
-      "picture",
-      "-an",
-      "-f",
-      "webp",
-      stickerOutputPath,
-    ]);
-
-    await runMediaCommand("ffmpeg", [
-      "-y",
-      "-i",
-      inputPath,
+    ffmpegArgs.push(
       "-map",
       "0:a:0",
       "-t",
@@ -219,30 +224,46 @@ export async function createAudioSticker(paramsHandler) {
       "-f",
       "ogg",
       audioOutputPath,
-    ]);
+    );
+    await runMediaCommand("ffmpeg", ffmpegArgs);
 
     const metadata = {
       username: '',
       botName: `${BOT_EMOJI} ${BOT_NAME}`,
     };
-    stickerPath = await addStickerMetadata(
-      await fs.readFile(stickerOutputPath),
-      metadata,
+    const { audioMessage } = await prepareWAMessageMedia(
+      {
+        audio: await fs.readFile(audioOutputPath),
+        mimetype: "audio/ogg; codecs=opus",
+        ptt: false,
+      },
+      { upload: socket.waUploadToServer },
     );
+    if (!audioMessage) {
+      throw new Error("Não foi possível preparar o áudio da figurinha.");
+    }
 
-    await sendSoundSticker({
-      socket,
-      remoteJid,
-      webMessage,
-      stickerBuffer: await fs.readFile(stickerPath),
-      audioBuffer: await fs.readFile(audioOutputPath),
-    });
+    for (const stickerOutputPath of stickerOutputPaths) {
+      const stickerPath = await addStickerMetadata(
+        await fs.readFile(stickerOutputPath),
+        metadata,
+      );
+      stickerPaths.push(stickerPath);
+
+      await sendSoundSticker({
+        socket,
+        remoteJid,
+        webMessage,
+        stickerBuffer: await fs.readFile(stickerPath),
+        audioMessage,
+      });
+    }
   } finally {
     for (const filePath of [
       inputPath,
-      stickerOutputPath,
+      ...stickerOutputPaths,
       audioOutputPath,
-      stickerPath,
+      ...stickerPaths,
     ]) {
       if (filePath) {
         await fs.rm(filePath, { force: true });

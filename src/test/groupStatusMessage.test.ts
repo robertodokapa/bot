@@ -120,7 +120,7 @@ describe("Group Status Message Detection", () => {
   });
 
   it("should not loop on cyclic objects or scan binary payloads", () => {
-    const message = {
+    const message: Record<string, any> = {
       extendedTextMessage: {
         text: "mensagem normal",
       },

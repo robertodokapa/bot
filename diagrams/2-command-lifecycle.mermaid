@@ -23,7 +23,7 @@ sequenceDiagram
         
         Note over Bot: Busca em:<br/>📁 src/commands/owner/<br/>📁 src/commands/admin/<br/>📁 src/commands/member/
         
-        Bot->>Bot: ✅ Encontrou: member/menu.js
+        Bot->>Bot: ✅ Encontrou: member/menu.ts
         Bot->>Bot: Verifica se você tem permissão
         
         Note over Bot: Permissão baseada na pasta:<br/>• owner/ = só dono do bot<br/>• admin/ = admins do grupo<br/>• member/ = qualquer um
@@ -33,9 +33,9 @@ sequenceDiagram
     rect rgb(255, 250, 230)
         Note over Bot,Cmd: 3️⃣ Executa o arquivo do comando
         
-        Bot->>Cmd: Chama menu.js
+        Bot->>Cmd: Chama menu.ts
         
-        Note over Cmd: O arquivo menu.js recebe tudo pronto:<br/>• sendReply (enviar resposta)<br/>• sendImage (enviar imagem)<br/>• args (argumentos do comando)<br/>• e mais 50+ funções prontas!
+        Note over Cmd: O arquivo menu.ts recebe tudo pronto:<br/>• sendReply (enviar resposta)<br/>• sendImage (enviar imagem)<br/>• args (argumentos do comando)<br/>• e mais 50+ funções prontas!
         
         Cmd->>Cmd: Lógica do comando menu:
         Note over Cmd: 1. Carrega imagem do menu<br/>2. Monta o texto com comandos<br/>3. Envia imagem + texto
@@ -53,4 +53,4 @@ sequenceDiagram
     %% ========== RESUMO ==========
     rect rgb(255, 255, 230)
         Note over User,Cmd: 📝 RESUMO SIMPLES
-        Note over User,Cmd: 1️⃣ Você envia: /menu<br/>2️⃣ Bot procura o arquivo menu.js nas pastas de comando<br/>3️⃣ Bot verifica se você pode usar (permissão)<br/>4️⃣ Arquivo menu.js executa e usa funções prontas<br/>5️⃣ Você recebe a resposta<br/><br/>💡 DICA: Cada comando é um arquivo separado!<br/>Não existe "switch/case" gigante
+        Note over User,Cmd: 1️⃣ Você envia: /menu<br/>2️⃣ Bot procura o arquivo menu.ts nas pastas de comando<br/>3️⃣ Bot verifica se você pode usar (permissão)<br/>4️⃣ Arquivo menu.ts executa e usa funções prontas<br/>5️⃣ Você recebe a resposta<br/><br/>💡 DICA: Cada comando é um arquivo separado!<br/>Não existe "switch/case" gigante

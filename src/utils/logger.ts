@@ -3,7 +3,7 @@
  *
  * @author Dev Gui
  */
-import pkg from "../../package.json" with { type: "json" };
+import { PACKAGE_VERSION } from "./packageInfo.js";
 
 let consoleNoiseFilterInstalled = false;
 
@@ -63,5 +63,5 @@ export function bannerLog() {
   console.log(`\x1b[36m░▀█▀░█▀█░█░█░█▀▀░█▀▀░█░█░▀█▀░░█▀▄░█▀█░▀█▀\x1b[0m`);
   console.log(`░░█░░█▀█░█▀▄░█▀▀░▀▀█░█▀█░░█░░░█▀▄░█░█░░█░`);
   console.log(`\x1b[36m░░▀░░▀░▀░▀░▀░▀▀▀░▀▀▀░▀░▀░▀▀▀░░▀▀░░▀▀▀░░▀░\x1b[0m`);
-  console.log(`\x1b[36m🤖 Versão: \x1b[0m${pkg.version}\n`);
+  console.log(`\x1b[36m🤖 Versão: \x1b[0m${PACKAGE_VERSION}\n`);
 }

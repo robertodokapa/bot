@@ -849,6 +849,8 @@ export function loadCommonFunctions({ socket, webMessage }) {
     sendStickerFromURL,
     sendSuccessReact,
     sendSuccessReply,
+    sendTypingState,
+    sendRecordState,
     sendText,
     sendVideoFromBuffer,
     sendVideoFromFile,

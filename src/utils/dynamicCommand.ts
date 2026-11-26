@@ -229,7 +229,7 @@ export async function dynamicCommand(paramsHandler, startProcess) {
 📄 *Detalhes*: ${messageText}`
       );
     } else {
-      errorLog("Erro ao executar comando", error);
+      errorLog(`Erro ao executar comando: ${String(error)}`);
       await sendErrorReply(
         `Ocorreu um erro ao executar o comando ${command.name}!
       

@@ -6,13 +6,7 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { PREFIX, SPIDER_API_TOKEN } from "../config.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const databasePath = path.resolve(__dirname, "..", "..", "database");
+import { DATABASE_DIR, PREFIX, SPIDER_API_TOKEN } from "../config.js";
 
 const AFK_GROUPS_FILE = "afk-groups";
 const ANTI_LINK_GROUPS_FILE = "anti-link-groups";
@@ -29,22 +23,26 @@ const PREFIX_GROUPS_FILE = "prefix-groups";
 const RESTRICTED_MESSAGES_FILE = "restricted-messages";
 const WELCOME_GROUPS_FILE = "welcome-groups";
 
-function createIfNotExists(fullPath, formatIfNotExists = []) {
+function createIfNotExists(fullPath: string, formatIfNotExists: any = []) {
   if (!fs.existsSync(fullPath)) {
     fs.writeFileSync(fullPath, JSON.stringify(formatIfNotExists));
   }
 }
 
-function readJSON(jsonFile, formatIfNotExists = []) {
-  const fullPath = path.resolve(databasePath, `${jsonFile}.json`);
+function readJSON(jsonFile: string, formatIfNotExists: any = []): any {
+  const fullPath = path.resolve(DATABASE_DIR, `${jsonFile}.json`);
 
   createIfNotExists(fullPath, formatIfNotExists);
 
   return JSON.parse(fs.readFileSync(fullPath, "utf8"));
 }
 
-function writeJSON(jsonFile, data, formatIfNotExists = []) {
-  const fullPath = path.resolve(databasePath, `${jsonFile}.json`);
+function writeJSON(
+  jsonFile: string,
+  data: any,
+  formatIfNotExists: any = [],
+): void {
+  const fullPath = path.resolve(DATABASE_DIR, `${jsonFile}.json`);
 
   createIfNotExists(fullPath, formatIfNotExists);
 

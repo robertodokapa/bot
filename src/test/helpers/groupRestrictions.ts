@@ -1,17 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import { afterEach, beforeEach } from "node:test";
-import { fileURLToPath } from "node:url";
+import { DATABASE_DIR } from "../../config.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-export const groupRestrictionsPath = path.resolve(
-  __dirname,
-  "..",
-  "..",
-  "..",
-  "database",
+export const groupRestrictionsPath = path.join(
+  DATABASE_DIR,
   "group-restrictions.json",
 );
 

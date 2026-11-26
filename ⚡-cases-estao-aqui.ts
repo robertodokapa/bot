@@ -41,7 +41,7 @@
  * ---------------- 🤖 ONDE MODIFICO O MENU? 🤖 ----------------
  *
  * Abra a pasta "src"
- * Vá no arquivo "menu.js" e edite o menu!
+ * Vá no arquivo "menu.ts" e edite o menu!
  * Só lembrando, faça tudo dentro das crases (`), pois é um template string!
  *
  * Não entendeu?

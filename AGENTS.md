@@ -37,11 +37,11 @@ The project philosophy is simple: code for humans first.
 
 Main runtime flow:
 
-1. `index.js` or `src/index.js` boots the bot.
-2. `src/connection.js` opens the WhatsApp connection, loads auth state, handles pairing, and reconnects when needed.
-3. `src/loader.js` registers listeners and wraps event execution with safe error handling.
-4. `src/middlewares/onMesssagesUpsert.js` receives messages, filters stale events, handles muted users and participant events, and injects common functions.
-5. `src/utils/dynamicCommand.js` validates prefix, permission, group state, and dispatches the selected command.
+1. `src/index.ts` boots the bot after TypeScript is compiled to `dist/`.
+2. `src/connection.ts` opens the WhatsApp connection, loads auth state, handles pairing, and reconnects when needed.
+3. `src/loader.ts` registers listeners and wraps event execution with safe error handling.
+4. `src/middlewares/onMesssagesUpsert.ts` receives messages, filters stale events, handles muted users and participant events, and injects common functions.
+5. `src/utils/dynamicCommand.ts` validates prefix, permission, group state, and dispatches the selected command.
 6. `src/services/*` and `src/utils/*` provide integrations, media processing, database access, and helpers.
 
 High-value architectural notes:
@@ -49,32 +49,32 @@ High-value architectural notes:
 - the bot stores its WhatsApp auth state in `assets/auth/baileys/`
 - TIMEOUT_IN_MILLISECONDS_BY_EVENT throttles event handling to reduce spam-ban risk
 - `badMacHandler` is part of the self-healing strategy for session issues
-- `loadCommonFunctions.js` is the main injection layer for command helpers
+- `loadCommonFunctions.ts` is the main injection layer for command helpers
 
 ## CORE_FILES
 
 | Path | Responsibility |
 | --- | --- |
-| `index.js` | Root entrypoint for hosts that expect a root `index.js`. |
-| `src/index.js` | Main source entrypoint. |
-| `src/config.js` | Core runtime configuration, tokens, directories, flags, and platform settings. |
-| `src/connection.js` | WhatsApp socket setup, pairing, session persistence, reconnection logic. |
-| `src/loader.js` | Event registration and safe wrapper logic. |
-| `src/middlewares/onMesssagesUpsert.js` | Main inbound message processing pipeline. |
-| `src/middlewares/customMiddleware.js` | Official extension point for custom global logic. |
-| `src/utils/dynamicCommand.js` | Prefix validation, permission enforcement, and command dispatch. |
-| `src/utils/loadCommonFunctions.js` | Injected helper functions used by command handlers. |
-| `src/utils/database.js` | Safe access layer for JSON persistence. |
+| `dist/src/index.js` | Compiled entrypoint used by `npm start` and package consumers. |
+| `src/index.ts` | Main TypeScript source entrypoint. |
+| `src/config.ts` | Core runtime configuration, tokens, directories, flags, and platform settings. |
+| `src/connection.ts` | WhatsApp socket setup, pairing, session persistence, reconnection logic. |
+| `src/loader.ts` | Event registration and safe wrapper logic. |
+| `src/middlewares/onMesssagesUpsert.ts` | Main inbound message processing pipeline. |
+| `src/middlewares/customMiddleware.ts` | Official extension point for custom global logic. |
+| `src/utils/dynamicCommand.ts` | Prefix validation, permission enforcement, and command dispatch. |
+| `src/utils/loadCommonFunctions.ts` | Injected helper functions used by command handlers. |
+| `src/utils/database.ts` | Safe access layer for JSON persistence. |
 | `src/@types/index.d.ts` | Typing and documentation for command and middleware props. |
-| `src/services/spider-x-api.js` | Spider X integration for downloads, AI, Pinterest, Brat, and related endpoints. |
-| `src/services/sticker.js` | Sticker processing and EXIF handling. |
-| `src/services/ffmpeg.js` | Media conversion and audio/video processing. |
+| `src/services/spider-x-api.ts` | Spider X integration for downloads, AI, Pinterest, Brat, and related endpoints. |
+| `src/services/sticker.ts` | Sticker processing and EXIF handling. |
+| `src/services/ffmpeg.ts` | Media conversion and audio/video processing. |
 
 ## COMMAND_GUIDE
 
 Command template:
 
-```javascript
+```typescript
 import { PREFIX } from "../../config.js";
 import { InvalidParameterError } from "../../errors/index.js";
 
@@ -97,7 +97,7 @@ Command authoring rules:
 - use `src/errors/` custom errors for automatic user-facing responses
 - keep commands focused and readable
 - prefer existing helpers and services over duplicating code
-- if a command needs persistence, go through `src/utils/database.js`
+- if a command needs persistence, go through `src/utils/database.ts`
 
 ## TYPING_AND_MIDDLEWARE
 
@@ -115,7 +115,7 @@ Useful `handle()` capabilities:
 - download helpers: `downloadImage()`, `downloadVideo()`, `downloadAudio()`, `downloadSticker()`
 - context values: `args`, `fullArgs`, `fullMessage`, `remoteJid`, `replyText`, `userLid`
 
-Custom global logic should go into `src/middlewares/customMiddleware.js`.
+Custom global logic should go into `src/middlewares/customMiddleware.ts`.
 
 Use it for:
 
@@ -145,7 +145,7 @@ Important files:
 Mandatory rule:
 
 - **never** read these files directly with `fs.readFileSync` inside commands
-- always use `src/utils/database.js`
+- always use `src/utils/database.ts`
 
 This keeps persistence behavior consistent and avoids duplicated parsing logic.
 
@@ -158,7 +158,7 @@ Two entry points punish a payment message:
   removed, never the one who quoted (`handleQuotedPaymentRestriction`)
 
 The quoted path is forgeable — `contextInfo.participant` and `quotedMessage` come
-from the client — so it is gated by `src/utils/messageEnvelopeRegistry.js`, an
+from the client — so it is gated by `src/utils/messageEnvelopeRegistry.ts`, an
 in-memory record of every group message envelope the bot received.
 
 Deliberate rule: **only a message the bot actually read as a payment corroborates
@@ -181,7 +181,7 @@ actually proves payment content.
 
 ### Spider X API
 
-`src/services/spider-x-api.js` powers:
+`src/services/spider-x-api.ts` powers:
 
 - downloads from TikTok, YouTube, Instagram, Facebook, Pinterest
 - AI endpoints such as Gemini, GPT-5 Mini, Flux
@@ -190,14 +190,14 @@ actually proves payment content.
 
 It depends on `SPIDER_API_TOKEN`, which can come from:
 
-- `src/config.js`
+- `src/config.ts`
 - runtime database config through `/set-spider-api-token`
 
 ### Media Services
 
-`src/services/ffmpeg.js` handles media conversion, including audio normalization and voice-note friendly formats.
+`src/services/ffmpeg.ts` handles media conversion, including audio normalization and voice-note friendly formats.
 
-`src/services/sticker.js` handles:
+`src/services/sticker.ts` handles:
 
 - static sticker processing
 - animated sticker workflows
@@ -207,6 +207,8 @@ It depends on `SPIDER_API_TOKEN`, which can come from:
 ## STACK
 
 Runtime and dependency snapshot is in the root `package.json`
+
+TypeScript modules in `src/` compile to `dist/` with `npm run build`. `npm start` builds before starting the bot.
 
 Project-level scripts:
 
@@ -265,9 +267,9 @@ That skill is the specialized source for Pterodactyl guidance.
 
 Stability mechanisms:
 
-- `DEVELOPER_MODE` in `src/config.js` increases logging
+- `DEVELOPER_MODE` in `src/config.ts` increases logging
 - runtime logs are stored in `assets/temp/wa-logs.txt`
-- `src/utils/badMacHandler.js` helps recover from repeated session failures
+- `src/utils/badMacHandler.ts` helps recover from repeated session failures
 - TIMEOUT_IN_MILLISECONDS_BY_EVENT throttles event execution
 
 Use these custom error classes:

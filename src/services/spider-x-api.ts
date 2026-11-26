@@ -12,7 +12,7 @@ import { getSpiderApiToken } from "../utils/database.js";
 const { SPIDER_API_BASE_URL } = config;
 
 /**
- * Não configure o token da Spider X API aqui, configure em: src/config.js
+ * Não configure o token da Spider X API aqui, configure em: src/config.ts
  */
 function isSpiderApiTokenConfigured(token) {
   return token && token.trim() !== "" && token !== "seu_token_aqui";
@@ -21,7 +21,7 @@ function isSpiderApiTokenConfigured(token) {
 const messageIfTokenNotConfigured = `Token da API do Spider X não configurado!
       
 Para configurar, entre na pasta: \`src\` 
-e edite o arquivo \`config.js\`:
+e edite o arquivo \`config.ts\`:
 
 Procure por:
 

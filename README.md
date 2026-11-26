@@ -147,9 +147,9 @@ npm start
 
 11 - Aguarde 10 segundos, depois digite `CTRL + C` para parar o bot.
 
-Depois, Configure o arquivo `config.js` que está dentro da pasta `src`.
+Depois, configure o arquivo `config.ts` que está dentro da pasta `src`. O código TypeScript é compilado para `dist/` automaticamente ao executar `npm start`; para compilar sem iniciar o bot, use `npm run build`.
 
-```js
+```ts
 // Prefixo padrão dos comandos.
 export const PREFIX = "/";
 
@@ -275,7 +275,7 @@ No WhatsApp, vá em `dispositivos conectados`, clique em `conectar dispositivo` 
 
 12 - Aguarde a conexão e digite `CTRL + C` no PowerShell para parar o bot.
 
-Depois, configure o arquivo `config.js` que está dentro da pasta `src`.
+Depois, configure o arquivo `config.ts` que está dentro da pasta `src`.
 
 13 - Inicie o bot novamente.
 
@@ -412,7 +412,7 @@ pm2 start npm --name "takeshi-bot" -- start
 
 24 - Aguarde 10 segundos, depois digite `CTRL + C` para parar o bot.
 
-Depois, Configure o arquivo `config.js` que está dentro da pasta `src`.
+Depois, configure o arquivo `config.ts` que está dentro da pasta `src`.
 
 ```js
 // Prefixo padrão dos comandos.
@@ -447,7 +447,7 @@ Lembre-se de trocar os números acima pelos seus números, obviamente e tbm ver 
 
 ## Alguns comandos necessitam de API
 
-Edite o arquivo `config.js` que está dentro da pasta `src` e cole sua api key da plataforma Spider X API, conforme o código abaixo.
+Edite o arquivo `config.ts` que está dentro da pasta `src` e cole sua api key da plataforma Spider X API, conforme o código abaixo.
 Para obter seu token, acesse: [https://api.spiderx.com.br](https://api.spiderx.com.br) e crie sua conta gratuitamente!
 
 ```js
@@ -554,7 +554,9 @@ Obtenha sua API Key em: [https://linker.devgui.dev](https://linker.devgui.dev)
 | YT MP4 | Membro | ✅ |
 | YT search | Membro | ✅ |
 
-Use `stickeraudio` marcando ou respondendo a um vídeo com áudio de até 10 segundos. O servidor precisa de `ffmpeg` e `ffprobe`, com suporte a `libwebp` e `libopus`. Como o formato sonoro está em rollout gradual no WhatsApp, a reprodução depende de o aplicativo de quem recebe já oferecer suporte.
+Use `sticker` marcando ou respondendo a uma imagem ou vídeo para receber duas versões (ajustada e cortada). Use `stickerfit`, `stickercrop` ou `stickerstretch` para escolher o enquadramento.
+
+Use `stickeraudio` marcando ou respondendo a um vídeo com áudio de até 10 segundos. O comando envia duas versões (ajustada e cortada); use `stickeraudiofit`, `stickeraudiocrop` ou `stickeraudiostretch` para escolher o enquadramento. O servidor precisa de `ffmpeg`, com suporte a `libwebp` e `libopus`. Como o formato sonoro está em rollout gradual no WhatsApp, a reprodução depende de o aplicativo de quem recebe já oferecer suporte.
 
 ## Auto responder
 
@@ -579,11 +581,11 @@ O Takeshi Bot possui um auto-responder embutido, edite o arquivo em `./database/
 
 ## Onde fica o menu do bot?
 
-O menu do bot fica dentro da pasta `src` no arquivo chamado `menu.js`
+O menu do bot fica dentro da pasta `src` no arquivo chamado `menu.ts`
 
 ## Onde modifico a mensagem de boas vindas e quando alguém sai do grupo?
 
-As mensagens ficam dentro da pasta `src` no arquivo chamado `messages.js`
+As mensagens ficam dentro da pasta `src` no arquivo chamado `messages.ts`
 
 ## Diagrama de como os comandos funcionam
 
@@ -595,7 +597,7 @@ As mensagens ficam dentro da pasta `src` no arquivo chamado `messages.js`
 
 ## Custom Middleware - Personalize o bot sem modificar arquivos principais
 
-O arquivo `src/middlewares/customMiddleware.js` permite adicionar lógica personalizada sem mexer nos arquivos core do bot.
+O arquivo `src/middlewares/customMiddleware.ts` permite adicionar lógica personalizada sem mexer nos arquivos core do bot.
 
 ### Quando usar?
 
@@ -694,21 +696,20 @@ export async function customMiddleware({ type, commonFunctions }) {
     - 📁 member ➔ _pasta onde ficam os comandos gerais (todos poderão utilizar)_
       - 📁 exemplos ➔ _pasta de exemplos apenas para exploração e reaproveitamento em comandos próprios_
     - 📁 owner ➔ _pasta onde ficam os comandos de dono (grupo e bot)_
-    - 📝🤖-como-criar-comandos.js ➔ _arquivo de exemplo de como criar um comando_
   - 📁 errors ➔ _classes de erros usadas nos comandos_
   - 📁 middlewares ➔ _interceptadores de requisições_
   - 📁 services ➔ _serviços diversos_
   - 📁 test ➔ _testes_
   - 📁 utils ➔ _utilitários_
-  - 📝 config.js ➔ _arquivo de configurações do bot_
-  - 📝 connection.js ➔ _script de conexão do bot com a biblioteca Baileys_
-  - 📝 index.js ➔ _script ponto de entrada do bot_
-  - 📝 loader.js ➔ _script de carga de funções_
-  - 📝 menu.js ➔ _menu do bot_
-  - 📝 messages.js ➔ _arquivos de mensagens de boas vindas e saída_
-  - 📝 test.js ➔ _script de testes_
+  - 📝 config.ts ➔ _arquivo de configurações do bot_
+  - 📝 connection.ts ➔ _script de conexão do bot com a biblioteca Baileys_
+  - 📝 index.ts ➔ _script ponto de entrada do bot_
+  - 📝 loader.ts ➔ _script de carga de funções_
+  - 📝 menu.ts ➔ _menu do bot_
+  - 📝 messages.ts ➔ _arquivos de mensagens de boas vindas e saída_
+  - 📝 test.ts ➔ _script de testes_
 - 📝 .gitignore ➔ _arquivo para não subir certas pastas no GitHub_
-- 📝 ⚡-cases-estao-aqui.js ➔ _easter egg_
+- 📝 ⚡-cases-estao-aqui.ts ➔ _easter egg / exemplo de estrutura do projeto_
 - 📝 AGENTS.md ➔ _arquivo de instruções para IA's_
 - 📝 CLAUDE.md ➔ _arquivo de instruções para a IA Claude_
 - 📝 GEMINI.md ➔ _arquivo de instruções para a IA Gemini_

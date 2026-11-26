@@ -36,12 +36,12 @@
  * Simples, não é mesmo? Ah, detalhe, não precisa colocar um "if" para saber se o comando é de admin ou de dono.
  * O bot já faz isso para você! Basta colocar o comando na pasta correspondente!
  *
- * O arquivo 🤖-como-criar-comandos.js é um gabarito para você copiar e colar no seu comando!
+ * O arquivo ⚡-cases-estao-aqui.ts é um exemplo para você copiar e adaptar no seu comando!
  *
  * ---------------- 🤖 ONDE MODIFICO O MENU? 🤖 ----------------
  *
  * Abra a pasta "src"
- * Vá no arquivo "menu.js" e edite o menu!
+ * Vá no arquivo "menu.ts" e edite o menu!
  * Só lembrando, faça tudo dentro das crases (`), pois é um template string!
  *
  * Não entendeu?
@@ -105,7 +105,7 @@ process.on("unhandledRejection", (reason) => {
     return;
   }
 
-  errorLog(`Promessa rejeitada não tratada:`, reason);
+  errorLog(`Promessa rejeitada não tratada: ${String(reason)}`);
 });
 
 async function startBot() {

@@ -3,6 +3,10 @@ import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+export const PROJECT_ROOT =
+  path.basename(path.dirname(__dirname)) === "dist"
+    ? path.resolve(__dirname, "..", "..")
+    : path.resolve(__dirname, "..");
 
 // Prefixo padrão dos comandos.
 export const PREFIX = "_";
@@ -27,13 +31,13 @@ export const OWNER_LID = "82420640534568@lid";
 export const COMMANDS_DIR = path.join(__dirname, "commands");
 
 // Diretório de arquivos de mídia.
-export const DATABASE_DIR = path.resolve(__dirname, "..", "database");
+export const DATABASE_DIR = path.join(PROJECT_ROOT, "database");
 
 // Diretório de arquivos de mídia.
-export const ASSETS_DIR = path.resolve(__dirname, "..", "assets");
+export const ASSETS_DIR = path.join(PROJECT_ROOT, "assets");
 
 // Diretório de arquivos temporários.
-export const TEMP_DIR = path.resolve(__dirname, "..", "assets", "temp");
+export const TEMP_DIR = path.join(ASSETS_DIR, "temp");
 
 // Timeout em milissegundos por evento (evita banimento).
 export const TIMEOUT_IN_MILLISECONDS_BY_EVENT = 500;

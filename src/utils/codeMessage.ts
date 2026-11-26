@@ -115,6 +115,11 @@ export async function sendRichResponseMessage(
   richResponse,
   quoted,
 ) {
+  const userJid = socket.authState.creds.me?.id;
+  if (!userJid) {
+    throw new Error("A sessão do WhatsApp não está autenticada.");
+  }
+
   const rich = applyForwardedMetaAiContext(richResponse, remoteJid);
   const payload = proto.Message.fromObject({
     botForwardedMessage: {
@@ -128,6 +133,7 @@ export async function sendRichResponseMessage(
     },
   });
   const waMessage = generateWAMessageFromContent(remoteJid, payload, {
+    userJid,
     quoted: quoted ? JSON.parse(JSON.stringify(quoted)) : undefined,
   });
 

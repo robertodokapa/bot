@@ -9,7 +9,7 @@ import { LINKER_API_KEY, LINKER_BASE_URL, PREFIX } from "../config.js";
 import { getSpiderApiToken } from "../utils/database.js";
 
 /**
- * Não configure o token do Linker aqui, configure em: src/config.js
+ * Não configure o token do Linker aqui, configure em: src/config.ts
  */
 function isApiKeyConfigured(apiKey) {
   return (
@@ -22,7 +22,7 @@ function isApiKeyConfigured(apiKey) {
 const messageIfKeyNotConfigured = `API Key do Linker ou token da Spider X API não configurado!
       
 Para configurar, entre na pasta: \`src\` 
-e edite o arquivo \`config.js\`:
+e edite o arquivo \`config.ts\`:
 
 Procure por:
 

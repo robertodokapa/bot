@@ -3,10 +3,10 @@
  *
  * @author Dev Gui
  */
-import pkg from "../package.json" with { type: "json" };
 import { BOT_NAME } from "./config.js";
 import { getPrefix } from "./utils/database.js";
 import { readMore } from "./utils/index.js";
+import { PACKAGE_VERSION } from "./utils/packageInfo.js";
 
 export function menuMessage(groupJid) {
   const date = new Date();
@@ -19,7 +19,7 @@ export function menuMessage(groupJid) {
 ▢ • Data: ${date.toLocaleDateString("pt-br")}
 ▢ • Hora: ${date.toLocaleTimeString("pt-br")}
 ▢ • Prefixo: ${prefix}
-▢ • Versão: ${pkg.version}
+▢ • Versão: ${PACKAGE_VERSION}
 ▢
 ╰━━─「🪐」─━━
 
@@ -39,7 +39,13 @@ export function menuMessage(groupJid) {
 ╭━━⪩ STICKERS ⪨━━
 ▢
 ▢ • ${prefix}sticker
+▢ • ${prefix}stickerfit
+▢ • ${prefix}stickercrop
+▢ • ${prefix}stickerstretch
 ▢ • ${prefix}stickeraudio
+▢ • ${prefix}stickeraudiofit
+▢ • ${prefix}stickeraudiocrop
+▢ • ${prefix}stickeraudiostretch
 ▢
 ╰━━─「🎨」─━━`;
 }

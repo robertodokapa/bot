@@ -55,7 +55,7 @@ export async function onMessagesUpsert({ socket, messages, startProcess }) {
       }
 
       if (isAddOrLeave.includes(webMessage.messageStubType)) {
-        let action = "";
+        let action: "add" | "remove" | undefined;
         if (webMessage.messageStubType === GROUP_PARTICIPANT_ADD) {
           action = "add";
         } else if (webMessage.messageStubType === GROUP_PARTICIPANT_LEAVE) {

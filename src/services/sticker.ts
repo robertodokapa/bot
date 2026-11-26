@@ -3,19 +3,93 @@
  *
  * @author MRX
  */
-import { exec } from "child_process";
+import { exec, execFile } from "node:child_process";
 import webp from "node-webpmux";
 import fs from "node:fs";
 import path from "node:path";
+import { promisify } from "node:util";
 import { BOT_EMOJI, BOT_NAME, TEMP_DIR } from "../config.js";
 import {
   getContent,
   getRandomName,
   getRandomNumber,
-  getUserName,
 } from "../utils/index.js";
 
 const MAX_VIDEO_DURATION_SECONDS = 10;
+const execFileAsync = promisify(execFile);
+
+export type StickerFit = "contain" | "cover" | "stretch";
+
+function getStickerFilter(fit: StickerFit, size: number, isVideo: boolean) {
+  const scale =
+    fit === "stretch"
+      ? `scale=${size}:${size}`
+      : `scale=${size}:${size}:force_original_aspect_ratio=${fit === "cover" ? "increase" : "decrease"}`;
+  const crop = fit === "cover" ? `,crop=${size}:${size}` : "";
+  const pad =
+    fit === "contain"
+      ? `,pad=${size}:${size}:(ow-iw)/2:(oh-ih)/2:color=0x00000000`
+      : "";
+  const videoFilters = isVideo ? ",fps=15,setsar=1" : "";
+
+  return `${scale}${crop}${pad}${videoFilters}`;
+}
+
+async function renderSticker(
+  inputPath: string,
+  outputPath: string,
+  fit: StickerFit,
+  isVideo: boolean,
+) {
+  const size = isVideo ? 350 : 512;
+  const args = [
+    "-hide_banner",
+    "-loglevel",
+    "error",
+    "-nostdin",
+    "-y",
+    "-i",
+    inputPath,
+  ];
+
+  if (isVideo) {
+    args.push("-t", String(MAX_VIDEO_DURATION_SECONDS));
+  }
+
+  args.push(
+    "-vf",
+    getStickerFilter(fit, size, isVideo),
+    "-c:v",
+    "libwebp",
+  );
+
+  if (isVideo) {
+    args.push(
+      "-loop",
+      "0",
+      "-quality",
+      "8",
+      "-compression_level",
+      "6",
+      "-method",
+      "6",
+      "-preset",
+      "picture",
+    );
+  } else {
+    args.push("-quality", "90");
+  }
+
+  args.push("-an", "-f", "webp", outputPath);
+
+  try {
+    await execFileAsync("ffmpeg", args, { maxBuffer: 1024 * 1024 });
+  } catch (error) {
+    const details =
+      error.stderr?.trim() || error.message || "erro desconhecido";
+    throw new Error(`Erro ao processar figurinha com FFmpeg: ${details}`);
+  }
+}
 
 export async function addStickerMetadata(media, metadata) {
   const tmpFileIn = getRandomName("webp");
@@ -158,7 +232,10 @@ export async function processAnimatedGifToSticker(inputPath, metadata) {
   });
 }
 
-export async function createSticker(paramsHandler) {
+export async function createSticker(
+  paramsHandler,
+  fits: StickerFit[] = ["contain", "cover"],
+) {
   const {
     isImage,
     isVideo,
@@ -166,7 +243,6 @@ export async function createSticker(paramsHandler) {
     downloadVideo,
     webMessage,
     sendStickerFromFile,
-    userLid,
   } = paramsHandler;
 
   const metadata = {
@@ -174,7 +250,10 @@ export async function createSticker(paramsHandler) {
     botName: `${BOT_EMOJI} ${BOT_NAME}`,
   };
 
-  const outputTempPath = path.resolve(TEMP_DIR, getRandomName("webp"));
+  const outputTempPaths = fits.map(() =>
+    path.resolve(TEMP_DIR, getRandomName("webp")),
+  );
+  const stickerPaths = [];
   let inputPath = null;
 
   try {
@@ -199,18 +278,6 @@ export async function createSticker(paramsHandler) {
         }
       }
 
-      await new Promise((resolve, reject) => {
-        const cmd = `ffmpeg -i "${inputPath}" -vf "scale=512:512:force_original_aspect_ratio=decrease" -f webp -quality 90 "${outputTempPath}"`;
-
-        exec(cmd, (error, _, stderr) => {
-          if (error) {
-            console.error("FFmpeg error:", stderr);
-            reject(error);
-          } else {
-            resolve();
-          }
-        });
-      });
     } else if (isVideo) {
       for (let attempt = 1; attempt <= 3; attempt++) {
         try {
@@ -241,88 +308,85 @@ export async function createSticker(paramsHandler) {
         throw new Error("Não foi possível identificar a duração do vídeo.");
       }
 
-      await new Promise((resolve, reject) => {
-        const cmd = `ffmpeg -y -i "${inputPath}" -t ${MAX_VIDEO_DURATION_SECONDS} -vf "scale=350:350,fps=15" -c:v libwebp -loop 0 -quality 8 -compression_level 6 -method 6 -preset picture -an -f webp "${outputTempPath}"`;
-
-        exec(cmd, (error, _, stderr) => {
-          if (error) {
-            console.error("FFmpeg error:", stderr);
-            reject(error);
-          } else {
-            resolve();
-          }
-        });
-      });
     }
 
-    if (inputPath && fs.existsSync(inputPath)) {
-      fs.unlinkSync(inputPath);
-      inputPath = null;
+    if (!inputPath) {
+      throw new Error("Não foi possível baixar a mídia.");
     }
 
-    if (!fs.existsSync(outputTempPath)) {
-      throw new Error("Arquivo de saída não foi criado pelo FFmpeg");
+    for (const [index, fit] of fits.entries()) {
+      await renderSticker(
+        inputPath,
+        outputTempPaths[index],
+        fit,
+        isVideo,
+      );
     }
 
-    const stickerPath = await addStickerMetadata(
-      await fs.promises.readFile(outputTempPath),
-      metadata,
-    );
+    for (const outputPath of outputTempPaths) {
+      if (!fs.existsSync(outputPath)) {
+        throw new Error("Arquivo de saída não foi criado pelo FFmpeg");
+      }
 
-    for (let attempt = 1; attempt <= 3; attempt++) {
-      try {
-        await sendStickerFromFile(stickerPath, true);
-        break;
-      } catch (stickerError) {
-        console.error(
-          `Tentativa ${attempt} de envio de sticker falhou:`,
-          stickerError.message,
-        );
+      const stickerPath = await addStickerMetadata(
+        await fs.promises.readFile(outputPath),
+        metadata,
+      );
+      stickerPaths.push(stickerPath);
 
-        if (attempt === 3) {
-          throw new Error(
-            `Falha ao enviar figurinha após 3 tentativas: ${stickerError.message}`,
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          await sendStickerFromFile(stickerPath, true);
+          break;
+        } catch (stickerError) {
+          console.error(
+            `Tentativa ${attempt} de envio de sticker falhou:`,
+            stickerError.message,
           );
-        }
 
-        await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
+          if (attempt === 3) {
+            throw new Error(
+              `Falha ao enviar figurinha após 3 tentativas: ${stickerError.message}`,
+            );
+          }
+
+          await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
+        }
       }
     }
-
-    if (fs.existsSync(outputTempPath)) {
-      fs.unlinkSync(outputTempPath);
-    }
-
-    if (fs.existsSync(stickerPath)) {
-      fs.unlinkSync(stickerPath);
-    }
   } catch (error) {
-    if (inputPath && fs.existsSync(inputPath)) {
-      fs.unlinkSync(inputPath);
-    }
-    if (fs.existsSync(outputTempPath)) {
-      fs.unlinkSync(outputTempPath);
-    }
+    const errorMessage =
+      error instanceof Error ? error.message : String(error);
 
     if (
-      error.message.includes("ETIMEDOUT") ||
-      error.message.includes("AggregateError") ||
-      error.message.includes("getaddrinfo ENOTFOUND") ||
-      error.message.includes("connect ECONNREFUSED") ||
-      error.message.includes("mmg.whatsapp.net")
+      errorMessage.includes("ETIMEDOUT") ||
+      errorMessage.includes("AggregateError") ||
+      errorMessage.includes("getaddrinfo ENOTFOUND") ||
+      errorMessage.includes("connect ECONNREFUSED") ||
+      errorMessage.includes("mmg.whatsapp.net")
     ) {
       throw new Error(
         `Erro de conexão ao baixar mídia do WhatsApp. Tente novamente em alguns segundos.`,
       );
     }
 
-    if (error.message.includes("FFmpeg")) {
+    if (errorMessage.includes("FFmpeg")) {
       throw new Error(
         `Erro ao processar mídia com FFmpeg. Verifique se o arquivo não está corrompido.`,
       );
     }
 
     throw error;
+  } finally {
+    for (const filePath of [
+      inputPath,
+      ...outputTempPaths,
+      ...stickerPaths,
+    ]) {
+      if (filePath) {
+        await fs.promises.rm(filePath, { force: true });
+      }
+    }
   }
 }
 
@@ -337,7 +401,7 @@ export async function processAutoSticker(paramsHandler) {
   }
 
   try {
-    await createSticker(paramsHandler);
+    await createSticker(paramsHandler, ["contain"]);
     await sendSuccessReact();
 
     return true;

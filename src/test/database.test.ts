@@ -7,17 +7,14 @@ import assert from "node:assert";
 import fs from "node:fs";
 import path from "node:path";
 import { after, afterEach, before, describe, it } from "node:test";
-import { fileURLToPath } from "node:url";
+import { DATABASE_DIR } from "../config.js";
 import * as database from "../utils/database.js";
 import {
   backupGroupRestrictions,
   restoreGroupRestrictions,
 } from "./helpers/groupRestrictions.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const testDatabasePath = path.resolve(__dirname, "..", "..", "database");
+const testDatabasePath = DATABASE_DIR;
 
 function cleanupJsonFile(fileName, backup) {
   const filePath = path.resolve(testDatabasePath, `${fileName}.json`);

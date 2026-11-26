@@ -25,9 +25,8 @@ import makeWASocket, {
 import NodeCache from "node-cache";
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import pino from "pino";
-import { PREFIX, TEMP_DIR } from "./config.js";
+import { ASSETS_DIR, PREFIX, TEMP_DIR } from "./config.js";
 import { load } from "./loader.js";
 import { badMacHandler } from "./utils/badMacHandler.js";
 import { onlyNumbers, question } from "./utils/index.js";
@@ -38,9 +37,6 @@ import {
   successLog,
   warningLog,
 } from "./utils/logger.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 if (!fs.existsSync(TEMP_DIR)) {
   fs.mkdirSync(TEMP_DIR, { recursive: true });
@@ -67,13 +63,7 @@ function clearScreenWithBanner() {
 }
 
 export async function connect() {
-  const baileysFolder = path.resolve(
-    __dirname,
-    "..",
-    "assets",
-    "auth",
-    "baileys",
-  );
+  const baileysFolder = path.join(ASSETS_DIR, "auth", "baileys");
 
   const { state, saveCreds } = await useMultiFileAuthState(baileysFolder);
 
@@ -123,7 +113,17 @@ export async function connect() {
 
     if (connection === "close") {
       const error = lastDisconnect?.error;
-      const statusCode = error?.output?.statusCode;
+      const errorOutput =
+        error &&
+        typeof error === "object" &&
+        "output" in error &&
+        typeof error.output === "object"
+          ? error.output
+          : undefined;
+      const statusCode =
+        errorOutput && "statusCode" in errorOutput
+          ? errorOutput.statusCode
+          : undefined;
 
       if (
         error?.message?.includes("Bad MAC") ||
@@ -198,7 +198,7 @@ export async function connect() {
       successLog(
         `✅ Estou pronto para uso! 
 Verifique o prefixo, digitando a palavra "prefixo" no WhatsApp. 
-O prefixo padrão definido no config.js é ${PREFIX}`,
+O prefixo padrão definido no config.ts é ${PREFIX}`,
       );
       badMacHandler.resetErrorCount();
     } else if (connection === "connecting") {

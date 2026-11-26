@@ -12,6 +12,11 @@ import path from "node:path";
 import { errorLog, warningLog } from "./logger.js";
 
 class BadMacHandler {
+  errorCount: number;
+  maxRetries: number;
+  resetInterval: number;
+  lastReset: number;
+
   constructor() {
     this.errorCount = 0;
     this.maxRetries = 5;

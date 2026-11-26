@@ -13,11 +13,13 @@ const MESSAGE_WRAPPERS = [
   "viewOnceMessageV2Extension",
 ];
 
-function normalizeUserId(userId) {
+function normalizeUserId(
+  userId: string | null | undefined,
+): string | undefined {
   return userId?.replace(/:\d+(?=@)/, "");
 }
 
-function getMessageContextInfo(message) {
+function getMessageContextInfo(message: Record<string, any> | null | undefined) {
   if (!message) {
     return null;
   }
@@ -66,8 +68,10 @@ export async function handleAfkReferences({ webMessage, commonFunctions }) {
     return;
   }
 
-  const referencedMembers = new Set(
-    (contextInfo.mentionedJid || []).map(normalizeUserId).filter(Boolean),
+  const referencedMembers = new Set<string>(
+    (contextInfo.mentionedJid || [])
+      .map(normalizeUserId)
+      .filter((memberId): memberId is string => Boolean(memberId)),
   );
 
   if (contextInfo.quotedMessage && contextInfo.participant) {

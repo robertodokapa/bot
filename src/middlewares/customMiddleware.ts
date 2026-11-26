@@ -20,7 +20,7 @@ export async function customMiddleware({
   commonFunctions,
   action,
   data,
-}) {
+}: CustomMiddlewareProps) {
   // Adicione sua lógica customizada aqui
   // Este arquivo é SEU - modifique à vontade!
 }

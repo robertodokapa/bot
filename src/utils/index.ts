@@ -3,7 +3,7 @@
  *
  * @author Dev Gui
  */
-import axios from "axios";
+import axios, { type AxiosRequestConfig } from "axios";
 import { delay, downloadContentFromMessage } from "baileys";
 import { writeFile } from "fs/promises";
 import { exec } from "node:child_process";
@@ -299,7 +299,7 @@ export async function readCommandImports() {
     .filter((directory) => directory.isDirectory())
     .map((directory) => directory.name);
 
-  const commandImports = {};
+  const commandImports: Record<string, any[]> = {};
 
   await Promise.all(
     subdirectories.map(async (subdir) => {
@@ -334,7 +334,7 @@ export function toUserJid(value) {
   return `${onlyNumbers(value)}@s.whatsapp.net`;
 }
 
-export function getBuffer(url, options) {
+export function getBuffer(url, options: AxiosRequestConfig = {}) {
   return new Promise((resolve, reject) => {
     axios({
       method: "get",
@@ -372,7 +372,7 @@ export function readMore() {
   return invisibleBreak;
 }
 
-export function getRandomName(extension) {
+export function getRandomName(extension = "") {
   const fileName = `takeshi_temp_${getRandomNumber(0, 999999)}`;
 
   if (!extension) {
@@ -411,7 +411,11 @@ export function getUserName(webMessage, userLid, fallback = "usuario") {
 }
 
 export async function ajustAudioByBuffer(audioBuffer, isPtt = true) {
-  return new Promise((resolve, reject) => {
+  return new Promise<{
+    oldAudioPath: string;
+    audioPath: string;
+    audioBuffer: Buffer;
+  }>((resolve, reject) => {
     const tempPath = path.resolve(
       TEMP_DIR,
       getRandomName(isPtt ? "ogg" : "mp3"),

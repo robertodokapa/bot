@@ -5,11 +5,9 @@
  */
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
+import { DATABASE_DIR } from "../config.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const DB_PATH = path.join(__dirname, "../../database/warns.json");
+const DB_PATH = path.join(DATABASE_DIR, "warns.json");
 const INITIAL_WARN_LIMIT = 3;
 
 function loadDB() {

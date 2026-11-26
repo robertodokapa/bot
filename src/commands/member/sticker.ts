@@ -11,7 +11,7 @@ import { createSticker } from "../../services/sticker.js";
 export default {
   name: "sticker",
   description:
-    "Cria figurinhas de imagem, gif ou vídeo (usa até 10 segundos do vídeo).",
+    "Cria duas versões da figurinha, preservando e cortando o enquadramento.",
   commands: ["f", "s", "sticker", "fig"],
   usage: `${PREFIX}sticker (marque ou responda uma imagem/gif/vídeo)`,
   /**
