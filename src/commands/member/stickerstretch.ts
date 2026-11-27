@@ -2,7 +2,14 @@ import { createStickerFitCommand } from "../../utils/stickerFitCommand.js";
 
 export default createStickerFitCommand({
   name: "stickerstretch",
-  description: "Cria uma figurinha esticada para preencher o quadrado.",
-  commands: ["stickerstretch", "stretch", "ss", "fe", "figesticada"],
+  description:
+    "Converte mídia em sticker esticando para preencher o quadrado sem recortar.",
+  commands: [
+    "stretch",
+    "ss",
+    "fe",
+    "stickerstretch",
+    "figesticada",
+  ],
   fit: "stretch",
 });

@@ -11,8 +11,8 @@ import { createSticker } from "../../services/sticker.js";
 export default {
   name: "sticker",
   description:
-    "Cria duas versões da figurinha, preservando e cortando o enquadramento.",
-  commands: ["f", "s", "sticker", "fig"],
+    "Converte imagem, vídeo, sticker, GIF ou documento em sticker WebP.",
+  commands: ["sticker", "s", "figurinha", "f", "fig"],
   usage: `${PREFIX}sticker (marque ou responda uma imagem/gif/vídeo)`,
   /**
    * @param {CommandHandleProps} props

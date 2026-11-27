@@ -7,6 +7,19 @@ const CATEGORY_LABELS: Record<string, string> = {
   owner: "👑 Comandos para o dono",
 };
 
+const SECTION_LABELS: Record<string, string> = {
+  sticker: "🎨 Figurinhas",
+  stickerfit: "🎨 Figurinhas",
+  stickercrop: "🎨 Figurinhas",
+  stickerstretch: "🎨 Figurinhas",
+  stickeraudio: "🎵 Figurinhas com áudio",
+  stickeraudiofit: "🎵 Figurinhas com áudio",
+  stickeraudiocrop: "🎵 Figurinhas com áudio",
+  stickeraudiostretch: "🎵 Figurinhas com áudio",
+  ping: "⚙️ Sistema",
+  menu: "⚙️ Sistema",
+};
+
 const CATEGORY_ORDER: Record<string, number> = {
   member: 0,
   admin: 1,
@@ -26,43 +39,63 @@ export default {
           (CATEGORY_ORDER[first] ?? 3) - (CATEGORY_ORDER[second] ?? 3),
       )
       .map(([category, commands]) => {
-        const commandLines = commands
-          .filter(
-            (command) =>
-              Array.isArray(command?.commands) && command.commands.length > 0,
-          )
-          .sort((first, second) => first.name.localeCompare(second.name))
-          .map((command) => {
-            const usage = command.usage?.startsWith(PREFIX)
-              ? `${prefix}${command.usage.slice(PREFIX.length)}`
-              : `${prefix}${command.commands[0]}`;
-            const aliases = command.commands
-              .slice(1)
-              .map((alias) => `${prefix}${alias}`);
+        const groupedCommands = new Map<string, any[]>();
 
-            return [
-              `• ${usage}`,
-              aliases.length > 0 ? `  Atalhos: ${aliases.join(", ")}` : "",
-              command.description ? `  ${command.description}` : "",
-            ]
-              .filter(Boolean)
-              .join("\n");
+        for (const command of commands) {
+          if (
+            !Array.isArray(command?.commands) ||
+            command.commands.length === 0
+          ) {
+            continue;
+          }
+
+          const section =
+            SECTION_LABELS[command.name] ??
+            (category === "member"
+              ? "📌 Comandos"
+              : CATEGORY_LABELS[category] ?? `📌 Comandos: ${category}`);
+          const sectionCommands = groupedCommands.get(section) ?? [];
+          sectionCommands.push(command);
+          groupedCommands.set(section, sectionCommands);
+        }
+
+        const commandLines = [...groupedCommands.entries()]
+          .sort(([first], [second]) => first.localeCompare(second))
+          .map(([section, sectionCommands]) => {
+            const lines = sectionCommands
+              .sort((first, second) =>
+                first.commands[0].localeCompare(second.commands[0]),
+              )
+              .map((command) => {
+                const usage = `${prefix}${command.commands[0]}`;
+                const aliases = command.commands
+                  .slice(1)
+                  .map((alias) => `${prefix}${alias}`);
+
+                return [
+                  `• *${usage}*${aliases.length > 0 ? ` _(ou: ${aliases.join(", ")})_` : ""}`,
+                  command.description ? `  └ ${command.description}` : "",
+                ]
+                  .filter(Boolean)
+                  .join("\n");
+              });
+
+            return `*${section}*\n${lines.join("\n")}`;
           });
 
         if (commandLines.length === 0) {
           return "";
         }
-
-        const title =
-          CATEGORY_LABELS[category] ??
-          `📌 Comandos: ${category}`;
-
-        return `*${title}*\n${commandLines.join("\n")}`;
+ 
+        return commandLines.join("\n\n");
       })
       .filter(Boolean);
 
     await sendReply(
-      `📋 *Comandos disponíveis*\nPrefixo: ${prefix}\n\n${sections.join("\n\n")}`,
+      `╭━━⪩ *COMANDOS* ⪨━━\n` +
+        `▢ Prefixo: ${prefix}\n` +
+        `▢ Use *${prefix}comando* para executar.\n` +
+        `╰━━─「📋」─━━\n\n${sections.join("\n\n")}`,
     );
   },
 };

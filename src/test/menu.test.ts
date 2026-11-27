@@ -16,4 +16,6 @@ it("lists loaded commands using the current prefix", async () => {
   assert.match(response, /!ping/);
   assert.match(response, /!stickeraudiofit/);
   assert.match(response, /!safit/);
+  assert.match(response, /!s/);
+  assert.match(response, /!figurinha/);
 });

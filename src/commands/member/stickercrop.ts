@@ -2,7 +2,16 @@ import { createStickerFitCommand } from "../../utils/stickerFitCommand.js";
 
 export default createStickerFitCommand({
   name: "stickercrop",
-  description: "Cria uma figurinha quadrada, cortando as bordas.",
-  commands: ["stickercrop", "crop", "sc", "fc", "figquadrada"],
+  description:
+    "Converte mídia em sticker cortando para preencher o quadrado inteiro.",
+  commands: [
+    "sc",
+    "quadrado",
+    "quadrada",
+    "stickercrop",
+    "crop",
+    "fc",
+    "figquadrada",
+  ],
   fit: "cover",
 });

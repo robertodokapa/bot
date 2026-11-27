@@ -4,8 +4,17 @@ import { createAudioSticker } from "../../services/audio-sticker.js";
 
 export default {
   name: "stickeraudio",
-  description: "Cria duas figurinhas animadas com áudio e enquadramentos diferentes.",
-  commands: ["sa", "fa", "figa", "figaudio", "stickeraudio", "sticker-audio"],
+  description:
+    "Converte um vídeo com áudio em stickers animados com e sem corte.",
+  commands: [
+    "sa",
+    "figurinhaaudio",
+    "fa",
+    "figa",
+    "figaudio",
+    "stickeraudio",
+    "sticker-audio",
+  ],
   usage: `${PREFIX}stickeraudio (marque ou responda um vídeo com áudio; usa até 10 segundos)`,
   /**
    * @param {CommandHandleProps} paramsHandler
