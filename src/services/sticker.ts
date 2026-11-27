@@ -20,7 +20,7 @@ const execFileAsync = promisify(execFile);
 
 export type StickerFit = "contain" | "cover" | "stretch";
 
-function getStickerFilter(fit: StickerFit, size: number, isVideo: boolean) {
+export function getStickerFitFilter(fit: StickerFit, size: number) {
   const scale =
     fit === "stretch"
       ? `scale=${size}:${size}`
@@ -28,11 +28,16 @@ function getStickerFilter(fit: StickerFit, size: number, isVideo: boolean) {
   const crop = fit === "cover" ? `,crop=${size}:${size}` : "";
   const pad =
     fit === "contain"
-      ? `,pad=${size}:${size}:(ow-iw)/2:(oh-ih)/2:color=0x00000000`
+      ? `,format=rgba,pad=${size}:${size}:(ow-iw)/2:(oh-ih)/2:color=0x00000000`
       : "";
+
+  return `${scale}${crop}${pad}`;
+}
+
+function getStickerFilter(fit: StickerFit, size: number, isVideo: boolean) {
   const videoFilters = isVideo ? ",fps=15,setsar=1" : "";
 
-  return `${scale}${crop}${pad}${videoFilters}`;
+  return `${getStickerFitFilter(fit, size)}${videoFilters}`;
 }
 
 async function renderSticker(
@@ -61,6 +66,8 @@ async function renderSticker(
     getStickerFilter(fit, size, isVideo),
     "-c:v",
     "libwebp",
+    "-pix_fmt",
+    "yuva420p",
   );
 
   if (isVideo) {

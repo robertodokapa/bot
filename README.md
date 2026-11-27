@@ -126,8 +126,10 @@ chmod -R 755 ./*
 Se você escolheu uma pasta de armazenamento compartilhado (como `/sdcard`, `~/storage/emulated/0` ou a pasta `Download`), use a flag `--no-bin-links`, pois esse tipo de armazenamento não suporta links simbólicos e o `npm install` normal vai falhar:
 
 ```sh
-npm install --no-bin-links
+npm install --include=dev --no-bin-links
 ```
+
+Os scripts de build chamam o TypeScript diretamente, então `npm start` funciona mesmo sem os links em `node_modules/.bin`.
 
 Se você usou uma pasta interna do Termux (fora da `~/storage`), pode instalar normalmente:
 
@@ -553,6 +555,8 @@ Obtenha sua API Key em: [https://linker.devgui.dev](https://linker.devgui.dev)
 | YT MP3 | Membro | ✅ |
 | YT MP4 | Membro | ✅ |
 | YT search | Membro | ✅ |
+
+Use `menu` para ver os comandos disponíveis, seus atalhos e as permissões por categoria.
 
 Use `sticker` marcando ou respondendo a uma imagem ou vídeo para receber duas versões (ajustada e cortada). Use `stickerfit`, `stickercrop` ou `stickerstretch` para escolher o enquadramento.
 

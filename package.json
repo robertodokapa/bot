@@ -5,8 +5,8 @@
   "main": "dist/src/index.js",
   "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "build:tests": "tsc -p tsconfig.tests.json",
+    "build": "node ./node_modules/typescript/bin/tsc -p tsconfig.json",
+    "build:tests": "node ./node_modules/typescript/bin/tsc -p tsconfig.tests.json",
     "start": "npm run build && node ./dist/src/index.js",
     "test": "npm run build && npm run build:tests && node ./dist/src/test.js",
     "test:all": "npm run build && npm run build:tests && node --test --test-concurrency=1 dist/src/test",

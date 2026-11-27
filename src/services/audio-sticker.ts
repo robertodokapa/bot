@@ -4,6 +4,7 @@ import path from "node:path";
 import { promisify } from "node:util";
 import {
   generateWAMessage,
+  getAudioDuration,
   prepareWAMessageMedia,
   proto,
 } from "baileys";
@@ -11,12 +12,39 @@ import { BOT_EMOJI, BOT_NAME, TEMP_DIR } from "../config.js";
 import { getContent, getRandomName } from "../utils/index.js";
 import {
   addStickerMetadata,
+  getStickerFitFilter,
   type StickerFit,
 } from "./sticker.js";
 
 const execFileAsync = promisify(execFile);
 const MAX_DURATION_SECONDS = 10;
 const SOUND_STICKER_PATCH = Symbol.for("takeshi.audioStickerCodec");
+
+async function getSoundStickerAudioDuration(audioBuffer, fallbackDuration) {
+  const fallbackSeconds = Math.min(
+    MAX_DURATION_SECONDS,
+    Math.max(1, Math.round(fallbackDuration)),
+  );
+
+  try {
+    const duration = await getAudioDuration(audioBuffer);
+
+    if (Number.isFinite(duration) && duration > 0) {
+      return Math.min(MAX_DURATION_SECONDS, Math.max(1, Math.round(duration)));
+    }
+
+    console.warn(
+      "A duração do áudio da figurinha é inválida; usando a duração do vídeo.",
+    );
+  } catch (error) {
+    console.warn(
+      "Não foi possível detectar a duração do áudio da figurinha; usando a duração do vídeo.",
+      error,
+    );
+  }
+
+  return fallbackSeconds;
+}
 
 async function runMediaCommand(command, args) {
   try {
@@ -157,17 +185,15 @@ export async function createAudioSticker(
     const filterGraph = [
       `[0:v]split=${fits.length}${filterInputs}`,
       ...fits.map((fit, index) => {
-        const scale =
-          fit === "stretch"
-            ? "scale=350:350"
-            : `scale=350:350:force_original_aspect_ratio=${fit === "cover" ? "increase" : "decrease"}`;
-        const crop = fit === "cover" ? ",crop=350:350" : "";
-        const pad =
-          fit === "contain"
-            ? ",pad=350:350:(ow-iw)/2:(oh-ih)/2:color=0x00000000"
-            : "";
-
-        return `[base${index}]trim=duration=${MAX_DURATION_SECONDS},setpts=PTS-STARTPTS,${scale}${crop}${pad},fps=15,setsar=1[v${index}]`;
+        const fitFilter = getStickerFitFilter(fit, 350);
+        return [
+          `[base${index}]trim=duration=${MAX_DURATION_SECONDS}`,
+          "setpts=PTS-STARTPTS",
+          fitFilter,
+          "fps=15",
+          "setsar=1",
+          `[v${index}]`,
+        ].join(",");
       }),
     ].join(";");
     const ffmpegArgs = [
@@ -191,6 +217,8 @@ export async function createAudioSticker(
         "-an",
         "-c:v",
         "libwebp",
+        "-pix_fmt",
+        "yuva420p",
         "-loop",
         "0",
         "-quality",
@@ -213,6 +241,8 @@ export async function createAudioSticker(
       "-t",
       String(MAX_DURATION_SECONDS),
       "-vn",
+      "-af",
+      "aresample=async=1:first_pts=0,asetpts=PTS-STARTPTS",
       "-ac",
       "1",
       "-ar",
@@ -221,6 +251,8 @@ export async function createAudioSticker(
       "libopus",
       "-b:a",
       "64k",
+      "-avoid_negative_ts",
+      "make_zero",
       "-f",
       "ogg",
       audioOutputPath,
@@ -231,10 +263,16 @@ export async function createAudioSticker(
       username: '',
       botName: `${BOT_EMOJI} ${BOT_NAME}`,
     };
+    const audioBuffer = await fs.readFile(audioOutputPath);
+    const audioDurationSeconds = await getSoundStickerAudioDuration(
+      audioBuffer,
+      duration,
+    );
     const { audioMessage } = await prepareWAMessageMedia(
       {
-        audio: await fs.readFile(audioOutputPath),
+        audio: audioBuffer,
         mimetype: "audio/ogg; codecs=opus",
+        seconds: audioDurationSeconds,
         ptt: false,
       },
       { upload: socket.waUploadToServer },
@@ -242,6 +280,9 @@ export async function createAudioSticker(
     if (!audioMessage) {
       throw new Error("Não foi possível preparar o áudio da figurinha.");
     }
+    audioMessage.mimetype = "audio/ogg; codecs=opus";
+    audioMessage.seconds = audioDurationSeconds;
+    audioMessage.ptt = false;
 
     for (const stickerOutputPath of stickerOutputPaths) {
       const stickerPath = await addStickerMetadata(
