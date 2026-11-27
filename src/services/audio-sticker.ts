@@ -55,6 +55,29 @@ async function runMediaCommand(command, args) {
   }
 }
 
+export function buildAudioStickerFilterGraph(fits: StickerFit[]) {
+  const filterInputs = fits
+    .map((_, index) => `[base${index}]`)
+    .join("");
+  const filterChains = fits.map((fit, index) => {
+    const fitFilter = getStickerFitFilter(fit, 350);
+    const filters = [
+      `[base${index}]trim=duration=${MAX_DURATION_SECONDS}`,
+      "setpts=PTS-STARTPTS",
+      fitFilter,
+      "fps=15",
+      "setsar=1",
+    ];
+
+    return `${filters.join(",")}[v${index}]`;
+  });
+
+  return [
+    `[0:v]split=${fits.length}${filterInputs}`,
+    ...filterChains,
+  ].join(";");
+}
+
 export function installSoundStickerCodec() {
   if (proto.Message[SOUND_STICKER_PATCH]) {
     return;
@@ -179,23 +202,7 @@ export async function createAudioSticker(
   const stickerPaths = [];
 
   try {
-    const filterInputs = fits
-      .map((_, index) => `[base${index}]`)
-      .join("");
-    const filterGraph = [
-      `[0:v]split=${fits.length}${filterInputs}`,
-      ...fits.map((fit, index) => {
-        const fitFilter = getStickerFitFilter(fit, 350);
-        return [
-          `[base${index}]trim=duration=${MAX_DURATION_SECONDS}`,
-          "setpts=PTS-STARTPTS",
-          fitFilter,
-          "fps=15",
-          "setsar=1",
-          `[v${index}]`,
-        ].join(",");
-      }),
-    ].join(";");
+    const filterGraph = buildAudioStickerFilterGraph(fits);
     const ffmpegArgs = [
       "-hide_banner",
       "-loglevel",

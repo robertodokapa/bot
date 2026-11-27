@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { proto } from "baileys";
-import { installSoundStickerCodec } from "../services/audio-sticker.js";
+import {
+  buildAudioStickerFilterGraph,
+  installSoundStickerCodec,
+} from "../services/audio-sticker.js";
 
 installSoundStickerCodec();
 
@@ -91,5 +94,13 @@ describe("Sound sticker protobuf encoding", () => {
 
     assert.ok(proto.Message.decode(encoded).stickerMessage);
     assert.equal(readBytesField(encoded, 134), undefined);
+  });
+
+  it("attaches output labels to the final filter without an empty filter", () => {
+    const filterGraph = buildAudioStickerFilterGraph(["contain", "cover"]);
+
+    assert.match(filterGraph, /setsar=1\[v0\];/);
+    assert.match(filterGraph, /setsar=1\[v1\]$/);
+    assert.doesNotMatch(filterGraph, /setsar=1,\[v\d+\]/);
   });
 });
